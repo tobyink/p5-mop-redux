@@ -40,6 +40,7 @@ sub setup_for {
     {
         no strict 'refs';
         *{ $pkg . '::class'     } = sub (&@) {};
+        *{ $pkg . '::role'      } = sub (&@) {};
         *{ $pkg . '::has'       } = sub ($@) {};        
         *{ $pkg . '::method'    } = sub (&)  {};
         *{ $pkg . '::submethod' } = sub (&)  {};
@@ -50,6 +51,7 @@ sub setup_for {
         $pkg,
         {
             'class'     => { const => sub { $context->class_parser( @_ )     } },
+            'role'      => { const => sub { $context->role_parser( @_ )     } },
             'has'       => { const => sub { $context->attribute_parser( @_ ) } },
             'method'    => { const => sub { $context->method_parser( @_ )    } },
             'submethod' => { const => sub { $context->submethod_parser( @_ ) } },
@@ -57,10 +59,21 @@ sub setup_for {
     );
 }
 
+sub role_parser {
+    my $self = shift;
+    $self->init( @_ );
+    $self->_namespace_parser('build_role');
+}
+
 sub class_parser {
     my $self = shift;
-
     $self->init( @_ );
+    $self->_namespace_parser('build_class');
+}
+
+sub _namespace_parser {
+    my $self = shift;
+    my ($builder_method) = @_;
 
     $self->skip_declarator;
 
@@ -80,7 +93,7 @@ sub class_parser {
         . 'my $d = shift;'
         . 'eval(q[package ' . $pkg .';use strict;use warnings;]);'
         . 'mro::set_mro(q[' . $pkg . '], q[mop]);'
-        . '$' . $pkg . '::METACLASS = ' . __PACKAGE__ . '->build_class('
+        . '$' . $pkg . '::METACLASS = ' . __PACKAGE__ . '->' . $builder_method . '('
             . 'name => q[' . $pkg . ']' 
             . ($proto ? (', ' . $proto) : '') 
         . ');'
@@ -130,6 +143,27 @@ sub build_class {
     );
 
     $class;
+}
+
+sub build_role {
+    shift;
+    my %metadata = @_;
+
+    my $role_Class = 'mop::role';
+    if ( exists $metadata{ 'metaclass' } ) {
+        $role_Class = delete $metadata{ 'metaclass' };
+    }
+
+    my $role = $role_Class->new(%metadata);    
+
+    $role->add_submethod(
+        $role->method_class->new(
+            name => 'metaclass',
+            body => sub { $role }
+        )
+    );
+
+    $role;
 }
 
 sub generic_method_parser {

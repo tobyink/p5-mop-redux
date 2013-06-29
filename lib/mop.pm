@@ -16,6 +16,7 @@ our $BOOTSTRAPPED = 0;
 
 use mop::object;
 use mop::class;
+use mop::role;
 use mop::method;
 use mop::attribute;
 
@@ -29,9 +30,11 @@ sub import {
 }
 
 sub bootstrap {
+    return if $BOOTSTRAPPED;
     $_->metaclass for qw[
         mop::object
         mop::class
+        mop::role
         mop::attribute
         mop::method
     ];

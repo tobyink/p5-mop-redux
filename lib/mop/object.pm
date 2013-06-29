@@ -29,6 +29,9 @@ sub new {
         if (my $m = find_meta($_)) {
             %{ $m->attributes }
         }
+        else {
+            qw()
+        }
     } reverse @mro;
 
     foreach my $attr (values %attributes) { 

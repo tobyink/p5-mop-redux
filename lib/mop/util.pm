@@ -42,7 +42,7 @@ use warnings;
 sub get_linear_isa {
     my $class = shift;
     if (my $meta = mop::util::find_meta($class)) {
-        if (my $super = $meta->superclass) {
+        if ($meta->isa('mop::class') and my $super = $meta->superclass) {
             return [ $meta->name, @{ get_linear_isa($super) || [] } ];
         } else {
             return [ $meta->name ];

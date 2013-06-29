@@ -17,13 +17,17 @@ sub new {
     my $class = shift;
     my %args  = @_;
     my $self = $class->SUPER::new(@_);
+    my $does =
+        ref $args{'does'}     ? $args{'does'} :
+        defined $args{'does'} ? [$args{'does'}] :
+        [];
     $__superclass_STORAGE{ $self } = \($args{'superclass'});
-    $__does_STORAGE{ $self }       = ref $args{'does'} ? $args{'does'} : defined $args{'does'} ? [$args{'does'}] : [];
+    $__does_STORAGE{ $self }       = \($does);
     $self;
 }
 
 sub superclass { ${ $__superclass_STORAGE{ $_[0] } } }
-sub does       { @{ $__does_STORAGE{ $_[0] } } }
+sub does       { ${ $__does_STORAGE{ $_[0] } } }
 
 sub apply_roles {
     my ($self, @roles) = @_;
@@ -50,7 +54,7 @@ sub apply_roles {
 
 sub FINALIZE {
     my $self = shift;
-    $self->apply_roles(map mop::util::find_meta($_), $self->does);
+    $self->apply_roles(map mop::util::find_meta($_), @{$self->does});
 }
 
 our $METACLASS;

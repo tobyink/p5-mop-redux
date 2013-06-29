@@ -5,9 +5,9 @@ use Test::More;
 use mop;
 
 role Explosive {
-	method explode {
-		return 'BANG';
-	}
+    method explode {
+        return 'BANG';
+    }
 }
 
 class Bomb (does => 'Explosive') { }
@@ -15,9 +15,9 @@ class Bomb (does => 'Explosive') { }
 class BigBomb (extends => 'Bomb') { }
 
 is_deeply(
-	[ Bomb->metaclass->does ],
-	[ qw/Explosive/ ],
-	'metaclass reports `does` correctly',
+    [ Bomb->metaclass->does ],
+    [ qw/Explosive/ ],
+    'metaclass reports `does` correctly',
 );
 
 my $x = BigBomb->new;
@@ -25,7 +25,7 @@ my $x = BigBomb->new;
 can_ok('Explosive', 'explode');
 can_ok('Bomb', 'explode');
 can_ok('BigBomb', 'explode');
-can_ok($x, 'explode', '$x');
+can_ok($x, 'explode');
 
 ok(!'Explosive'->can('new'), 'roles cannot be instantiated');
 

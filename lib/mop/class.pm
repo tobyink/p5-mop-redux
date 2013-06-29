@@ -29,9 +29,8 @@ sub apply_roles {
     my ($self, @roles) = @_;
 
     my %composed_methods;
-    for my $r ($self->does) {
-        my $role = mop::util::find_meta($r);
-        die "not a role: $r" unless defined($role) && $role->isa('mop::role');
+    for my $role (@roles) {
+        die "not a role: $role" unless defined($role) && $role->isa('mop::role');
         
         my %role_methods = %{ $role->methods_for_class($self) };
         for my $method (sort keys %role_methods) {
@@ -40,12 +39,18 @@ sub apply_roles {
         }
     }
 
+    my @all_methods = (
+        values(%{$self->methods}),
+        values(%composed_methods)
+    );
+    $_->check_required_methods(\@all_methods) for @roles;
+
     $self->add_method($_) for values %composed_methods;
 }
 
 sub FINALIZE {
     my $self = shift;
-    $self->apply_roles( $self->does );
+    $self->apply_roles(map mop::util::find_meta($_), $self->does);
 }
 
 our $METACLASS;

@@ -4,15 +4,23 @@ use Test::More;
 
 use mop;
 
-role Explosive {
+role Explosive (required_methods => [qw/format/]) {
     method explode {
-        return 'BANG';
+        return $self->format('bang');
     }
 }
 
-class Bomb (does => 'Explosive') { }
+class Bomb (does => 'Explosive') {
+    method format {
+        lc($_[1])
+    }
+}
 
-class BigBomb (extends => 'Bomb') { }
+class BigBomb (extends => 'Bomb') {
+    method format {
+        uc($_[1])
+    }
+}
 
 is_deeply(
     [ Bomb->metaclass->does ],

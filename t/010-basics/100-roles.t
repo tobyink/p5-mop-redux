@@ -14,6 +14,12 @@ class Bomb (does => 'Explosive') { }
 
 class BigBomb (extends => 'Bomb') { }
 
+is_deeply(
+	[ Bomb->metaclass->does ],
+	[ qw/Explosive/ ],
+	'metaclass reports `does` correctly',
+);
+
 my $x = BigBomb->new;
 
 can_ok('Explosive', 'explode');

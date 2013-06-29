@@ -10,6 +10,16 @@ use parent 'mop::namespace';
 
 our $METACLASS;
 
+sub methods_for_class {
+    my ($self, $class) = @_;
+
+    my %methods = %{ $self->methods || {} };
+    delete $methods{$_} for keys %{ $class->methods || {} };
+    delete $methods{$_} for keys %{ $class->submethods || {} };
+
+    return \%methods;
+}
+
 sub metaclass {
     return $METACLASS if defined $METACLASS;
     require mop::class;
@@ -20,6 +30,8 @@ sub metaclass {
         superclass => 'mop::namespace'
     );
 
+    $METACLASS->add_method( mop::method->new( name => 'methods_for_class', body => \&methods_for_class ) );
+    
     $METACLASS;
 }
 

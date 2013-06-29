@@ -18,17 +18,37 @@ sub new {
     my %args  = @_;
     my $self = $class->SUPER::new(@_);
     $__superclass_STORAGE{ $self } = \($args{'superclass'});
-    $__does_STORAGE{ $self }       = ref $args{'does'} ? $args{'does'} : [$args{'does'}];
+    $__does_STORAGE{ $self }       = ref $args{'does'} ? $args{'does'} : defined $args{'does'} ? [$args{'does'}] : [];
     $self;
 }
 
 sub superclass { ${ $__superclass_STORAGE{ $_[0] } } }
 sub does       { @{ $__does_STORAGE{ $_[0] } } }
 
-our $METACLASS;
+sub apply_roles {
+    my ($self, @roles) = @_;
+
+    my %composed_methods;
+    for my $r ($self->does) {
+        my $role = mop::util::find_meta($r);
+        die "not a role: $r" unless defined($role) && $role->isa('mop::role');
+        
+        my %role_methods = %{ $role->methods_for_class($self) };
+        for my $method (sort keys %role_methods) {
+            die "roles conflict" if exists $composed_methods{$method};
+            $composed_methods{$method} = $role_methods{$method};
+        }
+    }
+
+    $self->add_method($_) for values %composed_methods;
+}
 
 sub FINALIZE {
+    my $self = shift;
+    $self->apply_roles( $self->does );
 }
+
+our $METACLASS;
 
 sub metaclass {
     return $METACLASS if defined $METACLASS;

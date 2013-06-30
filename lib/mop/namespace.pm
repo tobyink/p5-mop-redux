@@ -16,6 +16,7 @@ init_attribute_storage(my %__authority_STORAGE);
 init_attribute_storage(my %__attributes_STORAGE);
 init_attribute_storage(my %__methods_STORAGE);
 init_attribute_storage(my %__submethods_STORAGE);
+init_attribute_storage(my %__roles_STORAGE);
 
 sub new {
     my $class = shift;
@@ -27,6 +28,7 @@ sub new {
     $__attributes_STORAGE{ $self } = \({});
     $__methods_STORAGE{ $self }    = \({});
     $__submethods_STORAGE{ $self } = \({});
+    $__roles_STORAGE{ $self }      = \($args{'roles'} || []);
     $self;
 }
 
@@ -99,9 +101,39 @@ sub has_submethod {
     exists $self->submethods->{ $name };
 }
 
+# roles
+
+sub roles      { ${ $__roles_STORAGE{ $_[0] } } }
+
+sub apply_roles {
+    my ($self, @roles) = @_;
+
+    my %composed_methods;
+    for my $role (@roles) {
+        die "not a role: $role" unless defined($role) && $role->isa('mop::role');
+        
+        my %role_methods = %{ $role->methods_for_class($self) };
+        for my $method (sort keys %role_methods) {
+            die "roles conflict" if exists $composed_methods{$method};
+            $composed_methods{$method} = $role_methods{$method};
+        }
+    }
+
+    my @all_methods = (
+        values(%{$self->methods}),
+        values(%composed_methods)
+    );
+    $_->check_required_methods(\@all_methods) for @roles;
+
+    $self->add_method($_) for values %composed_methods;
+}
+
 # events
 
-sub FINALIZE {}
+sub FINALIZE {
+    my $self = shift;
+    $self->apply_roles(map mop::util::find_meta($_), @{$self->roles});
+}
 
 our $METACLASS;
 
@@ -148,6 +180,11 @@ sub metaclass {
         default => \({})
     ));
 
+    $METACLASS->add_attribute(mop::attribute->new( 
+        name    => '$roles', 
+        storage => \%__roles_STORAGE
+    ));
+
     # NOTE:
     # we do not include the new method, because
     # we want all meta-extensions to use the one
@@ -174,6 +211,8 @@ sub metaclass {
     $METACLASS->add_method( mop::method->new( name => 'get_submethod',   body => \&get_submethod ) );
     $METACLASS->add_method( mop::method->new( name => 'add_submethod',   body => \&add_submethod ) );
     $METACLASS->add_method( mop::method->new( name => 'has_submethod',   body => \&has_submethod ) );
+
+    $METACLASS->add_method( mop::method->new( name => 'roles',      body => \&roles ) );
 
     $METACLASS->add_method( mop::method->new( name => 'FINALIZE', body => \&FINALIZE ) );
 

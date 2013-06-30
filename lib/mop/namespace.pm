@@ -107,6 +107,10 @@ sub role_class { 'mop::role' }
 
 sub roles { ${ $__roles_STORAGE{ $_[0] } } }
 
+# Note that this adds a role to the
+# list of roles a class does, but
+# doesn't actually perform the
+# mechanics of role composition.
 sub add_role {
     my ($self, $role) = @_;
     $self->roles->{ $role->name } = $role;
@@ -143,6 +147,7 @@ sub apply_roles {
     $_->check_required_methods(\@all_methods) for @roles;
 
     $self->add_method($_) for values %composed_methods;
+    $self->has_role($_) || $self->add_role($_) for @roles;
 }
 
 # events

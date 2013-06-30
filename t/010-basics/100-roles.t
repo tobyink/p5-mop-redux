@@ -52,4 +52,17 @@ ok(!'Bomb'->DOES('BigBomb'), 'not Bomb DOES BigBomb');
 ok('BigBomb'->DOES('BigBomb'), 'BigBomb DOES BigBomb');
 ok($x->DOES('BigBomb'), '$x DOES BigBomb');
 
+role Big {
+	method be_big {
+		return 42;
+	}
+}
+
+ok(!$x->DOES('Big'), 'role has not been applied yet');
+
+BigBomb->metaclass->apply_roles( 'Big'->metaclass );
+
+ok($x->DOES('Big'), 'role has been applied now');
+is($x->be_big, 42, 'late role application works');
+
 done_testing;

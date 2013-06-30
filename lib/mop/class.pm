@@ -20,6 +20,10 @@ sub new {
     $self;
 }
 
+# instance creation
+
+sub new_instance { (shift)->name->new( @_ ) }
+
 sub superclass { ${ $__superclass_STORAGE{ $_[0] } } }
 
 our $METACLASS;
@@ -38,6 +42,8 @@ sub metaclass {
         name    => '$superclass', 
         storage => \%__superclass_STORAGE
     ));
+
+    $METACLASS->add_method( mop::method->new( name => 'new_instance', body => \&new_instance ) );
 
     $METACLASS->add_method( mop::method->new( name => 'superclass', body => \&superclass ) );
 

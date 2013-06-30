@@ -98,7 +98,7 @@ sub _namespace_parser {
             . ($proto ? (', ' . $proto) : '') 
         . ');'
         . '$d->{q[CLASS]} = $' . $pkg . '::METACLASS;'
-        . 'local $::CLASS = $d->{q[CLASS]};'
+        . 'local ${^CLASS} = $d->{q[CLASS]};'
     ;
 
     $self->inject_if_block( $inject );
@@ -201,11 +201,11 @@ sub generic_method_parser {
     # and not the metaclass object
     $inject .= 'my $class = $' . $CURRENT_CLASS_NAME{$self} . '::METACLASS->name;';
 
-    # localize $::SELF here too 
-    $inject .= 'local $::SELF = $self;';
+    # localize ${^SELF} here too 
+    $inject .= 'local ${^SELF} = $self;';
     
-    # and localize the $::CLASS here
-    $inject .= 'local $::CLASS = $' . $CURRENT_CLASS_NAME{$self} . '::METACLASS;';
+    # and localize the ${^CLASS} here
+    $inject .= 'local ${^CLASS} = $' . $CURRENT_CLASS_NAME{$self} . '::METACLASS;';
 
     # this is our method preamble, it
     # basically creates a method local
@@ -255,8 +255,8 @@ sub method_parser {
         my $name = shift;
         return sub (&) {
             my ($body, %opts) = @_;
-            $::CLASS->add_method(
-                $::CLASS->method_class->new(
+            ${^CLASS}->add_method(
+                ${^CLASS}->method_class->new(
                     name => $name,
                     body => Sub::Name::subname( $name, $body )
                 )
@@ -271,8 +271,8 @@ sub submethod_parser {
         my $name = shift;
         return sub (&) {
             my $body = shift;
-            $::CLASS->add_submethod(
-                $::CLASS->submethod_class->new(
+            ${^CLASS}->add_submethod(
+                ${^CLASS}->submethod_class->new(
                     name => $name,
                     body => Sub::Name::subname( $name, $body )
                 )
@@ -284,9 +284,8 @@ sub submethod_parser {
 sub required_method_parser {
     my $self = shift;
     my ($name) = @_;
-    
-    delete($::CLASS->methods->{$name});
-    $::CLASS->add_required_method($name);
+    delete(${^CLASS}->methods->{$name});
+    ${^CLASS}->add_required_method($name);
 }
 
 sub attribute_parser {
@@ -341,8 +340,8 @@ sub attribute_parser {
     $self->shadow(sub ($@) : lvalue {
         my ($storage, %metadata) = @_;
         my $initial_value;
-        $::CLASS->add_attribute(
-            $::CLASS->attribute_class->new(
+        ${^CLASS}->add_attribute(
+            ${^CLASS}->attribute_class->new(
                 name    => $name,
                 default => \$initial_value,
                 storage => $storage, 

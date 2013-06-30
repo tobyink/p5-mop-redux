@@ -41,7 +41,7 @@ sub setup_for {
         no strict 'refs';
         *{ $pkg . '::class'     } = sub (&@) {};
         *{ $pkg . '::role'      } = sub (&@) {};
-        *{ $pkg . '::has'       } = sub ($@) {};        
+        *{ $pkg . '::has'       } = sub ($@) {};
         *{ $pkg . '::method'    } = sub (&)  {};
         *{ $pkg . '::submethod' } = sub (&)  {};
     }
@@ -224,6 +224,19 @@ sub generic_method_parser {
                 ; 
     }
     
+    $self->skipspace;
+    my $linestr = $self->get_linestr;
+    if (substr($linestr, $self->offset, 1) ne '{')
+    {
+        substr($linestr, $self->offset, 0) =
+            "{ return; }" .
+            __PACKAGE__."->required_method_parser(q[$name]);";
+        $self->set_linestr($linestr);
+        $self->inject_if_block( $inject );
+        $self->shadow($callback->($name));
+        return;
+    }
+
     $self->inject_if_block( $inject );
     $self->shadow($callback->($name));
 
@@ -241,7 +254,7 @@ sub method_parser {
     $self->generic_method_parser(sub {
         my $name = shift;
         return sub (&) {
-            my $body = shift;
+            my ($body, %opts) = @_;
             $::CLASS->add_method(
                 $::CLASS->method_class->new(
                     name => $name,
@@ -266,6 +279,14 @@ sub submethod_parser {
             )
         }
     }, @_);
+}
+
+sub required_method_parser {
+    my $self = shift;
+    my ($name) = @_;
+    
+    delete($::CLASS->methods->{$name});
+    $::CLASS->add_required_method($name);
 }
 
 sub attribute_parser {

@@ -20,8 +20,9 @@ sub new {
     $self;
 }
 
-sub required_methods { ${ $__required_methods_STORAGE{ $_[0] } } }
-
+# A list of methods that this
+# role would install into a
+# class.
 sub methods_for_class {
     my ($self, $class) = @_;
 
@@ -30,6 +31,19 @@ sub methods_for_class {
     delete $methods{$_} for keys %{ $class->submethods || {} };
 
     return \%methods;
+}
+
+sub required_methods { ${ $__required_methods_STORAGE{ $_[0] } } }
+
+sub add_required_method {
+    my ($self, $name) = @_;
+    push @{ $self->required_methods }, $name
+        unless $self->has_required_method($name);
+}
+
+sub has_required_method {
+    my ($self, $name) = @_;
+    scalar grep { $_ eq $name } @{ $self->required_methods };
 }
 
 sub check_required_methods {

@@ -4,20 +4,21 @@ use Test::More;
 
 use mop;
 
-role Explosive (required_methods => [qw/format/]) {
+role Explosive {
+    method formatter;
     method explode {
-        return $self->format('bang');
+        return $self->formatter('Bang');
     }
 }
 
 class Bomb (does => 'Explosive') {
-    method format {
+    method formatter {
         lc($_[1])
     }
 }
 
 class BigBomb (extends => 'Bomb') {
-    method format {
+    method formatter {
         uc($_[1])
     }
 }

@@ -11,23 +11,19 @@ our $AUTHORITY = 'cpan:STEVAN';
 use parent 'mop::namespace';
 
 init_attribute_storage(my %__superclass_STORAGE);
-init_attribute_storage(my %__does_STORAGE);
+init_attribute_storage(my %__roles_STORAGE);
 
 sub new {
     my $class = shift;
     my %args  = @_;
     my $self = $class->SUPER::new(@_);
-    my $does =
-        ref $args{'does'}     ? $args{'does'} :
-        defined $args{'does'} ? [$args{'does'}] :
-        [];
     $__superclass_STORAGE{ $self } = \($args{'superclass'});
-    $__does_STORAGE{ $self }       = \($does);
+    $__roles_STORAGE{ $self }      = \($args{'roles'} || []);
     $self;
 }
 
 sub superclass { ${ $__superclass_STORAGE{ $_[0] } } }
-sub does       { ${ $__does_STORAGE{ $_[0] } } }
+sub roles      { ${ $__roles_STORAGE{ $_[0] } } }
 
 sub apply_roles {
     my ($self, @roles) = @_;
@@ -54,7 +50,7 @@ sub apply_roles {
 
 sub FINALIZE {
     my $self = shift;
-    $self->apply_roles(map mop::util::find_meta($_), @{$self->does});
+    $self->apply_roles(map mop::util::find_meta($_), @{$self->roles});
 }
 
 our $METACLASS;
@@ -75,12 +71,12 @@ sub metaclass {
     ));
 
     $METACLASS->add_attribute(mop::attribute->new( 
-        name    => '@does', 
-        storage => \%__does_STORAGE
+        name    => '$roles', 
+        storage => \%__roles_STORAGE
     ));
 
     $METACLASS->add_method( mop::method->new( name => 'superclass', body => \&superclass ) );
-    $METACLASS->add_method( mop::method->new( name => 'does',       body => \&does ) );
+    $METACLASS->add_method( mop::method->new( name => 'roles',      body => \&roles ) );
 
     $METACLASS->add_method( mop::method->new( name => 'FINALIZE',   body => \&FINALIZE ) );
 

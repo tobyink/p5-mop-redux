@@ -133,6 +133,11 @@ sub build_class {
         $metadata{ 'superclass' } = 'mop::object';
     }
 
+    if ( exists $metadata{ 'does' } ) {
+        my $roles = delete $metadata{ 'does' };
+        $metadata{ 'roles' } = ref($roles) eq q(ARRAY) ? $roles : [$roles];
+    }
+
     my $class = $class_Class->new(%metadata);    
 
     $class->add_submethod(

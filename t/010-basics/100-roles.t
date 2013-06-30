@@ -23,7 +23,7 @@ class BigBomb (extends => 'Bomb') {
 }
 
 is_deeply(
-    Bomb->metaclass->does,
+    Bomb->metaclass->roles,
     [ qw/Explosive/ ],
     'metaclass reports `does` correctly',
 );

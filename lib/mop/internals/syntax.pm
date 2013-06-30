@@ -135,7 +135,14 @@ sub build_class {
 
     if ( exists $metadata{ 'does' } ) {
         my $roles = delete $metadata{ 'does' };
-        $metadata{ 'roles' } = ref($roles) eq q(ARRAY) ? $roles : [$roles];
+        %{$metadata{ 'roles' }} = map {
+            if (ref) {
+                $_->name => $_;
+            }
+            else {
+                $_ => mop::util::find_meta($_);
+            }
+        } (ref($roles) eq q(ARRAY) ? @$roles : $roles);
     }
 
     my $class = $class_Class->new(%metadata);    

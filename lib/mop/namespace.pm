@@ -28,7 +28,7 @@ sub new {
     $__attributes_STORAGE{ $self } = \({});
     $__methods_STORAGE{ $self }    = \({});
     $__submethods_STORAGE{ $self } = \({});
-    $__roles_STORAGE{ $self }      = \($args{'roles'} || []);
+    $__roles_STORAGE{ $self }      = \($args{'roles'} || {});
     $self;
 }
 
@@ -103,7 +103,24 @@ sub has_submethod {
 
 # roles
 
-sub roles      { ${ $__roles_STORAGE{ $_[0] } } }
+sub role_class { 'mop::role' }
+
+sub roles { ${ $__roles_STORAGE{ $_[0] } } }
+
+sub add_role {
+    my ($self, $role) = @_;
+    $self->roles->{ $role->name } = $role;
+}
+
+sub get_role {
+    my ($self, $name) = @_;
+    $self->roles->{ $name }
+}
+
+sub has_role {
+    my ($self, $name) = @_;
+    exists $self->roles->{ $name };
+}
 
 sub apply_roles {
     my ($self, @roles) = @_;
@@ -132,7 +149,7 @@ sub apply_roles {
 
 sub FINALIZE {
     my $self = shift;
-    $self->apply_roles(map mop::util::find_meta($_), @{$self->roles});
+    $self->apply_roles(values %{$self->roles});
 }
 
 our $METACLASS;

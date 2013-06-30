@@ -138,6 +138,18 @@ sub metaclass {
             }
         } 
     ));
+    $METACLASS->add_method( mop::method->new( 
+        name => 'DOES', 
+        body => sub {
+            my ($self, $role) = @_;
+            for my $class (@{ mop::mro::get_linear_isa($self) }) {
+                return !!1 if $class eq $role;
+                my $metaclass = find_meta($class) or next;
+                return !!1 if $metaclass->has_role($role);
+            }
+            return !!0;
+        } 
+    ));
     $METACLASS->add_method( mop::method->new( name => 'DESTROY', body => \&DESTROY ) );
     $METACLASS;
 }

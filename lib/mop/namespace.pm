@@ -105,7 +105,7 @@ sub has_submethod {
 
 sub role_class { 'mop::role' }
 
-sub roles { ${ $__roles_STORAGE{ $_[0] } } }
+sub roles { ${ $__roles_STORAGE{ $_[0] } } ||= {} }
 
 # Note that this adds a role to the
 # list of roles a class does, but
@@ -234,7 +234,12 @@ sub metaclass {
     $METACLASS->add_method( mop::method->new( name => 'add_submethod',   body => \&add_submethod ) );
     $METACLASS->add_method( mop::method->new( name => 'has_submethod',   body => \&has_submethod ) );
 
-    $METACLASS->add_method( mop::method->new( name => 'roles',      body => \&roles ) );
+    $METACLASS->add_method( mop::method->new( name => 'role_class',  body => \&role_class    ) );
+    $METACLASS->add_method( mop::method->new( name => 'roles',       body => \&roles    ) );
+    $METACLASS->add_method( mop::method->new( name => 'get_role',    body => \&get_role ) );
+    $METACLASS->add_method( mop::method->new( name => 'add_role',    body => \&add_role ) );
+    $METACLASS->add_method( mop::method->new( name => 'has_role',    body => \&has_role ) );
+    $METACLASS->add_method( mop::method->new( name => 'apply_roles', body => \&apply_roles ) );
 
     $METACLASS->add_method( mop::method->new( name => 'FINALIZE', body => \&FINALIZE ) );
 

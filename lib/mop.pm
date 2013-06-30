@@ -33,6 +33,7 @@ sub bootstrap {
     return if $BOOTSTRAPPED;
     $_->metaclass for qw[
         mop::object
+        mop::namespace
         mop::class
         mop::role
         mop::attribute

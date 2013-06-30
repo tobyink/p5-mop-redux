@@ -74,7 +74,11 @@ sub metaclass {
     ));
 
     $METACLASS->add_method( mop::method->new( name => 'methods_for_class', body => \&methods_for_class ) );
-    $METACLASS->add_method( mop::method->new( name => 'required_methods',  body => \&required_methods ) );
+
+    $METACLASS->add_method( mop::method->new( name => 'required_methods',      body => \&required_methods ) );
+    $METACLASS->add_method( mop::method->new( name => 'add_required_method',   body => \&add_required_method ) );
+    $METACLASS->add_method( mop::method->new( name => 'has_required_method',   body => \&has_required_method ) );
+    $METACLASS->add_method( mop::method->new( name => 'check_required_method', body => \&check_required_method ) );
 
     $METACLASS;
 }

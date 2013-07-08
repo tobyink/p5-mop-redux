@@ -163,13 +163,18 @@ sub build_class {
 sub build_role {
     shift;
     my %metadata = @_;
-    
+
+    my $role_Class = 'mop::role';
+    if ( exists $metadata{ 'metaclass' } ) {
+        $role_Class = delete $metadata{ 'metaclass' };
+    }
+
     if ( exists $metadata{ 'with' } ) {      
         $metadata{ 'with' }  = [ $metadata{ 'with' } ] unless ref($metadata{ 'with' }) eq q(ARRAY);
         $metadata{ 'roles' } = [ map { mop::util::find_meta($_) } @{ delete $metadata{ 'with' } } ];
     }
 
-    mop::role->new(%metadata);
+    $role_Class->new(%metadata);
 }
 
 sub generic_method_parser {

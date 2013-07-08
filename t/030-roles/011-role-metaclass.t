@@ -15,7 +15,7 @@ role Thingable (metaclass => 'MyRole') { }
 isa_ok( 
 	mop::get_meta('Thingable'), 
 	$_, 
-	mop::get_meta('Thingable'),
+	q[mop::get_meta('Thingable')],
 ) for qw( mop::role MyRole );
 
 done_testing;

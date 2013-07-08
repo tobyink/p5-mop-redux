@@ -13,14 +13,13 @@ BEGIN {
 
 use lib 't/ext/mopx-types';
 use mop;
+use mopx::compose;
 use mopx::types;
 
 use Types::Standard 0.014 -types;
 
-class My::Class (extends => "mop::class", with => "mopx::types") {};
-
-class Foo (metaclass => "My::Class") {
-	has $foo (isa => Str);
+class Foo {
+	has $foo (metaclass => mopx::compose('mop::attribute', 'mopx::types'), isa => Str);
 	method get_foo ()       { $foo };
 	method set_foo ($value) { $foo = $value };
 }

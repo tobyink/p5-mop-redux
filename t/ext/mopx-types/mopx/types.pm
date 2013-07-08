@@ -3,10 +3,6 @@ use warnings;
 use mop;
 
 role mopx::types {
-	method attribute_class () { "mopx::types::attribute" }
-}
-
-class mopx::types::attribute (extends => "mop::attribute") {
 	has $isa;
 	method type_constraint () {
 		return $isa;

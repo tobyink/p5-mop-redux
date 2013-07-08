@@ -8,11 +8,17 @@ sub mopx::compose {
 	my ($base, @roles) = @_;
 	my $classname = sprintf('mopx::compose::__ANON__::%04d', ++$i);
 	
-	'mop::class'->new(
+	no strict 'refs';
+	${"$classname\::METACLASS"} = 'mop::class'->new(
 		name       => $classname,
-		superclass => $base,
-		roles      => \@roles,
+		superclass => ( ref($base) ? $base->name : $base ),
+		roles      => [ map { ref($_) ? $_ : mop::get_meta($_) } @roles ],
 	);
+	
+	${"$classname\::METACLASS"}->FINALIZE;
+	
+	require mro;
+	mro::set_mro($classname, 'mop');
 	
 	return $classname;
 }

@@ -15,9 +15,6 @@ use B::Hooks::EndOfScope;
 # keep the local package name around
 fieldhash my %CURRENT_CLASS_NAME;
 
-# keep the local type (CLASS or ROLE)
-fieldhash my %CURRENT_TYPE;
-
 # Keep a list of attributes currently 
 # being compiled in the class because 
 # we need to alias them in the method 
@@ -100,7 +97,6 @@ sub _namespace_parser {
     my $caller = $self->get_curstash_name;
     my $pkg    = ($caller eq 'main' ? $name : (join "::" => $caller, $name));
 
-    $CURRENT_TYPE{$self}           = $type;
     $CURRENT_CLASS_NAME{$self}     = $pkg;
     $CURRENT_ATTRIBUTE_LIST{$self} = [];
 
@@ -204,11 +200,7 @@ sub generic_method_parser {
     # and not the metaclass object
     $inject .= 'my $class = $' . $CURRENT_CLASS_NAME{$self} . '::METACLASS->name;';
 
-    # localize ${^SELF} here too 
-    $inject .= 'local ${^SELF} = $self;';
-    
-    # and localize the ${^CLASS} here
-    $inject .= 'local ${^' . $CURRENT_TYPE{$self} . '} = $' . $CURRENT_CLASS_NAME{$self} . '::METACLASS;';
+    $inject .= 'local ${^CALLER} = [ $self, q[' . $name . '], $' . $CURRENT_CLASS_NAME{$self} . '::METACLASS ];';
 
     # this is our method preamble, it
     # basically creates a method local

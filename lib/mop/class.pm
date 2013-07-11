@@ -91,20 +91,36 @@ sub FINALIZE {
             . ' unless class is declared abstract';
     }
 
+    # NOTE:
+    # We are actually installing the overloads
+    # into the package directly, this works 
+    # because the MRO stuff doesn't actually 
+    # get used if the the methods are local 
+    # to the package. This should avoid some
+    # complexity (perhaps). 
+
+    # XXX:
+    # This is stupid that we need to actually
+    # override this stuff, fallback => 1 should
+    # just work, but for some reason it doesn't
+    # so meh.
+    # - SL
     my %overload_defaults = ('""' => sub { $_[0] }, fallback => 1);
     foreach my $method ( values %{ $self->methods } ) {
         if ($method->name =~ /infix:<(.*)>/) {
+            # don't load it unless you 
+            # have too, it adds a speed
+            # penalty to the runtime
             require overload;
             overload::OVERLOAD(
                 $self->name, 
                 $1,
-                sub { 
-                    my ($self, @args) = @_;
-                    #warn ">>>>" . join ", " => $self, @args;
-                    $method->execute($self, \@args) 
-                },
+                sub { $method->execute( shift( @_ ), [ @_ ] ) },
                 %overload_defaults
             );
+            # clear these out so 
+            # we don't actually 
+            # set them again
             %overload_defaults = ();
         }
     }

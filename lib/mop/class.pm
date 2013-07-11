@@ -93,7 +93,7 @@ sub FINALIZE {
 
     my %overload_defaults = ('""' => sub { $_[0] }, fallback => 1);
     foreach my $method ( values %{ $self->methods } ) {
-        if ($method->name =~ /infix:<(.)>/) {
+        if ($method->name =~ /infix:<(.*)>/) {
             require overload;
             overload::OVERLOAD(
                 $self->name, 

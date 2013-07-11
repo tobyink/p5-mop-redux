@@ -311,8 +311,15 @@ sub generic_method_parser {
 
     if ($name eq 'infix') {
         my $linestr = $self->get_linestr;
-        $name .= substr($linestr, $self->offset, 4);
-        substr($linestr, $self->offset, 4) = '';
+
+        my $length = 2;
+        while (substr($linestr, $self->offset + $length, 1) ne '>') {
+            $length++;
+        }
+        $length++;
+
+        $name .= substr($linestr, $self->offset, $length);
+        substr($linestr, $self->offset, $length) = '';
         $self->set_linestr( $linestr );
     }
 

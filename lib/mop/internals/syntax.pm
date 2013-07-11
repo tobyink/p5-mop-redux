@@ -309,7 +309,7 @@ sub generic_method_parser {
 
     my $name  = $self->strip_name;
 
-    if ($name eq 'infix') {
+    if ($name eq 'operator') {
         my $linestr = $self->get_linestr;
 
         my $length = 2;

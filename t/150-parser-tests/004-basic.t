@@ -10,15 +10,15 @@ use mop;
 class Foo {
     has $val;
 
-    method infix:<+> ($b) {
+    method operator:<+> ($b) {
         $val + $b
     }
 
-    method infix:<-> ($b) {
+    method operator:<-> ($b) {
         $val - $b
     }
 
-    method infix:<==> ($b) {
+    method operator:<==> ($b) {
         $val == $b
     }
 }

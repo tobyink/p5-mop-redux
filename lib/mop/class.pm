@@ -107,7 +107,7 @@ sub FINALIZE {
     # - SL
     my %overload_defaults = ('""' => sub { $_[0] }, fallback => 1);
     foreach my $method ( values %{ $self->methods } ) {
-        if ($method->name =~ /infix:<(.*)>/) {
+        if ($method->name =~ /operator:<(.*)>/) {
             # don't load it unless you 
             # have too, it adds a speed
             # penalty to the runtime

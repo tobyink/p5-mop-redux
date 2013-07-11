@@ -308,6 +308,14 @@ sub generic_method_parser {
     $self->skip_declarator;
 
     my $name  = $self->strip_name;
+
+    if ($name eq 'infix') {
+        my $linestr = $self->get_linestr;
+        $name .= substr($linestr, $self->offset, 4);
+        substr($linestr, $self->offset, 4) = '';
+        $self->set_linestr( $linestr );
+    }
+
     my $proto = $self->strip_proto;
 
     $self->skipspace;
@@ -352,7 +360,7 @@ sub generic_method_parser {
                 . ');'
                 ; 
     }
-    
+
     $self->inject_if_block( $inject );
     $self->shadow($callback->($name));
 

@@ -90,6 +90,24 @@ sub FINALIZE {
             . $self->name 
             . ' unless class is declared abstract';
     }
+
+    my %overload_defaults = ('""' => sub { $_[0] }, fallback => 1);
+    foreach my $method ( values %{ $self->methods } ) {
+        if ($method->name =~ /infix:<(.)>/) {
+            require overload;
+            overload::OVERLOAD(
+                $self->name, 
+                $1,
+                sub { 
+                    my ($self, @args) = @_;
+                    #warn ">>>>" . join ", " => $self, @args;
+                    $method->execute($self, \@args) 
+                },
+                %overload_defaults
+            );
+            %overload_defaults = ();
+        }
+    }
 }
 
 our $METACLASS;

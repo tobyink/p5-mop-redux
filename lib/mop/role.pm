@@ -182,6 +182,33 @@ sub compose_into {
     );
 }
 
+sub apply_to_object {
+    my $self = shift;
+    my ($instance) = @_;
+    
+    state %cache;
+    state $count = 1;
+    my $new_class =
+#        $cache{ref($instance).";"."$self"} ||= 'mop::class'->new(
+#            name        => sprintf('mop::class::ANON%06d', $count++),
+#            superclass  => ref($instance),
+#            roles       => [ $self ],
+#        )->name;
+        $cache{ref($instance).";"."$self"} ||= do {
+            local $@;
+            my $tmp = evalbytes qq [
+                use mop;
+                class ${\ sprintf('mop::class::ANON%06d', $count) } extends ${\ ref($instance) } with ${\ $self->name } { }
+                q^${\ sprintf('mop::class::ANON%06d', $count) }^;
+            ];
+            die $@ if $@;
+            $count++;
+            $tmp;
+        };
+    
+    bless($instance, $new_class);
+}
+
 # events
 
 sub FINALIZE {

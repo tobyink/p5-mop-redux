@@ -56,9 +56,13 @@ sub setup_for {
         no strict 'refs';
         *{ $pkg . '::class'     } = sub (&@) {};
         *{ $pkg . '::role'      } = sub (&@) {};
-        *{ $pkg . '::has'       } = sub ($@) {};        
+        *{ $pkg . '::has'       } = sub ($@) {};
         *{ $pkg . '::method'    } = sub (&)  {};
         *{ $pkg . '::submethod' } = sub (&)  {};
+        *{ $pkg . '::__CLASS__' } = sub () {
+            require Carp;
+            Carp::croak("Cannot use __CLASS__ outside method");
+        };
     }
 
     my $context = $class->new;
@@ -346,6 +350,8 @@ sub generic_method_parser {
     # actually points to the class name
     # and not the metaclass object
     $inject .= 'my $class = $' . $CURRENT_CLASS_NAME{$self} . '::METACLASS->name;';
+    $inject .= 'no warnings "redefine";';
+    $inject .= 'local *__CLASS__ = sub () {'. $CURRENT_CLASS_NAME{$self} .'};';
 
     $inject .= 'local ${^CALLER} = [ $self, q[' . $name . '], $' . $CURRENT_CLASS_NAME{$self} . '::METACLASS ];';
 

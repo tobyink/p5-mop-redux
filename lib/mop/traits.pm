@@ -107,6 +107,20 @@ sub overload {
             sub { $method->execute( shift( @_ ), [ @_ ] ) },
             fallback => 1
         );
+    } elsif ($_[0]->isa('mop::attribute')) {
+        require overload;
+        
+        my ($attr, $operator) = @_;
+        my $allowed = join q[ ], @overload::ops{qw( conversion dereferencing unary )};
+        (" $allowed " =~ / \Q$operator\E /)
+            || die "Attributes can only overload conversion, dereferencing and unary operators";
+
+        overload::OVERLOAD(
+            $attr->associated_meta->name,
+            $operator,
+            sub { my $self = shift; $attr->fetch_data_in_slot_for($self) },
+            fallback => 1
+        );
     } elsif ($_[0]->isa('mop::class')) {
         my $meta = shift;
         ($_[0] eq 'inherited')

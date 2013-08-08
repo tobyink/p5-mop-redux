@@ -9,15 +9,19 @@ use mop::util qw[
     get_stash_for
 ];
 
+use B;
 use Devel::GlobalDestruction;
 use MRO::Define;
 use Scalar::Util    qw[ blessed ];
-use Variable::Magic qw[ wizard cast ];
+use Variable::Magic qw[ wizard cast dispell ];
 
 BEGIN {
     MRO::Define::register_mro(
         'mop',
-        sub { [ 'mop::internals::mro' ] }
+        sub {
+            my $pkg = B::svref_2object($_[0])->NAME;
+            [ 'mop::internals::mro::' . $pkg ]
+        }
     )
 }
 
@@ -219,8 +223,9 @@ sub call_method {
     }
 
     my $wiz = wizard(
-        data  => sub { [ \$method_called, \$is_fetched ] },
+        data  => sub { [ \$method_called, \$is_fetched, $_[1] ] },
         fetch => sub {
+            return if $_[2] =~ /::$/;     # this is a substash lookup
             return if $_[2] =~ /^\(/      # no overloaded methods
                    || $_[2] eq 'AUTOLOAD' # no AUTOLOAD (never!!)
                    || $_[2] eq 'import'   # classes don't import
@@ -234,7 +239,7 @@ sub call_method {
             ${ $_[1]->[1] } = 1;
             ${ $_[1]->[0] } = $_[2];
             $_[2] = 'invoke_method';
-            mro::method_changed_in('UNIVERSAL');
+            # mro::method_changed_in('UNIVERSAL');
 
             # NOTE: this warning can be used to
             # diagnose the double-invoke/no-fetch bug
@@ -244,7 +249,19 @@ sub call_method {
         }
     );
 
-    cast %::mop::internals::mro::, $wiz;
+    sub install_mro {
+        my ($pkg) = @_;
+        my $stash = get_stash_for('mop::internals::mro::' . $pkg);
+        cast %{ $stash->namespace }, $wiz, $pkg;
+        $stash->add_symbol('&invoke_method' => \&invoke_method);
+    }
+
+    sub uninstall_mro {
+        my ($pkg) = @_;
+        my $stash = get_stash_for('mop::internals::mro::' . $pkg);
+        dispell %{ $stash->namespace }, $wiz;
+        $stash->remove_symbol('&invoke_method');
+    }
 }
 
 1;

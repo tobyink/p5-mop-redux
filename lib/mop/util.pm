@@ -42,6 +42,7 @@ sub install_meta {
     my $stash = mop::util::get_stash_for($meta->name);
     $stash->add_symbol('$METACLASS', \$meta);
     $stash->add_symbol('$VERSION', \$meta->version);
+    mop::internals::mro::install_mro($meta->name);
     mro::set_mro($meta->name, 'mop');
 }
 
@@ -50,6 +51,7 @@ sub uninstall_meta {
     my $stash = mop::util::get_stash_for($meta->name);
     $stash->remove_symbol('$METACLASS');
     $stash->remove_symbol('$VERSION');
+    mop::internals::mro::uninstall_mro($meta->name);
     mro::set_mro($meta->name, 'dfs');
 }
 

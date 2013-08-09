@@ -324,13 +324,7 @@ sub generic_method_parser {
     lex_read;
 
     my $preamble = '{'
-        . 'my ($self, $class);'
-        . 'if (Scalar::Util::blessed($_[0])) {'
-           . '$self  = shift(@_);'
-           . '$class = Scalar::Util::blessed($self);'
-        . '} else {'
-           . '$class = shift(@_);'
-        . '}'
+        . 'my $self = shift;'
         . 'local ${^CALLER} = [ $self, q[' . $name . '], $' . $CURRENT_CLASS_NAME . '::METACLASS ];';
 
     # this is our method preamble, it

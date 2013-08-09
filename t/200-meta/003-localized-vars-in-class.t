@@ -21,7 +21,6 @@ class Foo {
 	is(undef, ${^CALLER},  '... no value for ${^CALLER} in class body');
 
 	method bar {
-		is($class, 'Foo', '... got the value for $class we expected');
 		is($self, ${^SELF}, '... got the invocant as expected');
 		is(mop::get_meta('Foo'), ${^CLASS}, '... got the metaclass as expected (in the method)');
 		is(undef, ${^ROLE}, '... no value for ${^ROLE} in method');

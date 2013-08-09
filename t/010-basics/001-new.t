@@ -55,7 +55,7 @@ class Baz {
         # NOTE:
         # this is how we do argument mangling
         # - SL
-        $class->next::method( bar => $x )
+        $self->next::method( bar => $x )
     }
 
     method bar { $bar }

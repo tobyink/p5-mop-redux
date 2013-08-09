@@ -3,6 +3,8 @@ use warnings;
 
 use mop;
 
+use Scalar::Util 'blessed';
+
 class Option is abstract {
     method get;
     method get_or_else;
@@ -23,9 +25,9 @@ class None extends Option {
     method or_else     ($f) { $f->() }
     method is_defined       { 0 }
     method is_empty         { 1 }
-    method map         ($f) { $class->new }
-    method flatmap     ($f) { $class->new }
-    method flatten     ($f) { $class->new }
+    method map         ($f) { blessed($self)->new }
+    method flatmap     ($f) { blessed($self)->new }
+    method flatten     ($f) { blessed($self)->new }
     method foreach     ($f) {}
     method forall      ($f) { 1 }
     method exists      ($f) { 0 }
@@ -35,12 +37,12 @@ class Some extends Option {
     has $val;
     method get              { $val }
     method get_or_else ($f) { $val }
-    method or_else     ($f) { $class->new( val => $val ) }
+    method or_else     ($f) { blessed($self)->new( val => $val ) }
     method is_defined       { 1 }
     method is_empty         { 0 }
-    method map         ($f) { $class->new( val => $f->( $val ) ) }
+    method map         ($f) { blessed($self)->new( val => $f->( $val ) ) }
     method flatmap     ($f) { $f->( $val ) }
-    method flatten          { $class->new( val => $val ) }
+    method flatten          { blessed($self)->new( val => $val ) }
     method foreach     ($f) { $f->( $val ) }
     method forall      ($f) { $f->( $val ) }
     method exists      ($f) { $f->( $val ) }

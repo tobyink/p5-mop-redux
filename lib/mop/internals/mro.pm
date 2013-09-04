@@ -69,6 +69,8 @@ sub _find_method {
 
     my @mro = @{ mop::mro::get_linear_isa( $invocant ) };
 
+    warn join ", " => @mro;
+
     # NOTE:
     # this is ugly, needs work
     # - SL
@@ -79,16 +81,24 @@ sub _find_method {
         shift( @mro );
     }
 
+    warn join ", " => @mro;
+
+    warn "----------";
+
     foreach my $class ( @mro ) {
         if (my $meta = find_meta($class)) {
+            warn "Looking for $method_name in $class and found meta";
             return $meta->get_method( $method_name )
                 if $meta->has_method( $method_name );
         } else {
+            warn "Looking for $method_name in $class and found no meta";
             my $stash = get_stash_for( $class );
             return $stash->get_symbol( '&' . $method_name )
                 if $stash->has_symbol( '&' . $method_name );
         }
     }
+
+    warn ">>>>>>>>>";
 
     if (my $universally = UNIVERSAL->can($method_name)) {
         if (my $method = find_meta('mop::object')->get_method($method_name)) {

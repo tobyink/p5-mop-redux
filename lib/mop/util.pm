@@ -293,6 +293,9 @@ use warnings;
     sub get_linear_isa {
         my $class = ref($_[0]) || $_[0];
 
+        warn "======= got $class with cache: " . (join ", " => @{ $ISA_CACHE{$class} }) . "\n"
+            if $class !~ /^mop::/ && $ISA_CACHE{$class};
+
         return $ISA_CACHE{$class} if $ISA_CACHE{$class};
 
         my @isa;
@@ -307,6 +310,10 @@ use warnings;
                 last;
             }
         }
+
+        Carp::cluck "======= setting cache for $class with : " . (join ", " => @isa) . "\n"
+            if $class !~ /^mop::/;
+
         return $ISA_CACHE{$class} = \@isa;
     }
 
